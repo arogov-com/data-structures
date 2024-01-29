@@ -4,3 +4,4 @@
 - Stack
 - Multiple type stack
 - Multiple type queue
+- Multiple type hash map

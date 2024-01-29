@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <sys/time.h>
+#include "time.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,8 +9,10 @@
 #include "list_multitype.h"
 #include "stack.h"
 #include "queue.h"
+#include "map.h"
 
-#define STACK_SIZE 4
+#define STACK_SIZE  4
+#define MAP_ENTRIES 100000
 
 void test_queue() {
     printf("%-24s", "Check queue: ");
@@ -555,7 +559,65 @@ void test_stack() {
     printf("PASS\n");
 }
 
+void test_map() {
+    printf("%-24s", "Check map: ");
+
+    int *values = malloc(MAP_ENTRIES * sizeof(int));
+    if(values == NULL) {
+        printf("Can't allocate memory for values\n");
+        return;
+    }
+    char *keys = malloc(MAP_ENTRIES * 10);
+    if(values == NULL) {
+        free(values);
+        printf("Can't allocate memory for keys\n");
+        return;
+    }
+    memset(values, 0, sizeof(int) * MAP_ENTRIES);
+    memset(keys, 0, MAP_ENTRIES * 10);
+
+    struct MAP map = {.objects = NULL};
+
+    // Fill keys and values arrays, add them into the map
+    for(int i = 0; i != MAP_ENTRIES; ++i) {
+        values[i] = i;
+        sprintf(&keys[i * 10], "key%i", i);
+        assert(map_add(&map, &keys[i * 10], 10, &values[i], sizeof(int)) == MAP_OK);
+    }
+
+    // Check number of entries in the map
+    assert(map.count == MAP_ENTRIES);
+
+    // Check that each value matches the key
+    int value;
+    for(int i = 0; i != MAP_ENTRIES; ++i) {
+        value = -1;
+        assert(map_get(&map, &keys[i * 10], 10, &value) == MAP_OK);
+        assert(value == values[i]);
+    }
+
+    // Check value changing
+    value = -1;
+    assert(map_add(&map, "key49999", 10, &value, sizeof(int)) == MAP_OK);
+    value = 0;
+    assert(map_get(&map, "key49999", 10, &value) == MAP_OK);
+    assert(value == -1);
+
+    // Check value size changing
+    char hello[] = "Hello, World!";
+    assert(map_add(&map, "key49998", 10, hello, sizeof(hello)) == MAP_OK);
+    memset(hello, 0, sizeof(hello));
+    assert(map_get(&map, "key49998", 10, hello) == MAP_OK);
+    assert(memcmp(hello, "Hello, World!", sizeof(hello)) == 0);
+
+    // Destroy the map
+    assert(map_destroy(&map) == MAP_OK);
+
+    printf("PASS\n");
+}
+
 int main(int argc, char const *argv[]) {
+    test_map();
     test_stack();
     test_mt_stack();
     test_queue();

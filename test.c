@@ -561,6 +561,7 @@ void test_stack() {
 
 void test_map() {
     printf("%-24s", "Check map: ");
+    int value;
 
     int *values = malloc(MAP_ENTRIES * sizeof(int));
     if(values == NULL) {
@@ -589,7 +590,6 @@ void test_map() {
     assert(map.count == MAP_ENTRIES);
 
     // Check that each value matches the key
-    int value;
     for(int i = 0; i != MAP_ENTRIES; ++i) {
         value = -1;
         assert(map_get(&map, &keys[i * 10], 10, &value) == MAP_OK);
@@ -610,8 +610,23 @@ void test_map() {
     assert(map_get(&map, "key49998", 10, hello) == MAP_OK);
     assert(memcmp(hello, "Hello, World!", sizeof(hello)) == 0);
 
+    // Check iteration by the map
+    assert(map_get_objects_start(&map) == MAP_OK);
+    int i = 0;
+    while(map_get_objects_next(&map)) {
+        ++i;
+    }
+    assert(i == MAP_ENTRIES);
+
+    // Check key deleting
+    for(int i = 0; i != MAP_ENTRIES; ++i) {
+        assert(map_del(&map, &keys[i * 10], 10) == MAP_OK);
+    }
+    assert(map.count == 0);
+
     // Destroy the map
     assert(map_destroy(&map) == MAP_OK);
+    assert(map.count == 0 && map.length == 0 && map.objects == NULL);
 
     printf("PASS\n");
 }

@@ -1,12 +1,14 @@
 #ifndef _MAP_H
 #define _MAP_H
 
-#define MAP_INITIAL_SIZE   16
-#define MAP_PARAM_ERROR    -1
-#define MAP_UNINITIALIZED  -2
-#define MAP_MALLOC_ERROR   -3
-#define MAP_KEY_ERROR      -4
-#define MAP_OK              0
+#define MAP_INITIAL_SIZE     15
+
+#define MAP_PARAM_ERROR      -1
+#define MAP_NOT_INITIALIZED  -2
+#define MAP_MALLOC_ERROR     -3
+#define MAP_KEY_ERROR        -4
+#define MAP_EMPTY            -5
+#define MAP_OK                0
 
 
 struct MAP_OBJECT {
@@ -21,6 +23,8 @@ struct MAP {
     struct MAP_OBJECT *objects;
     unsigned int length;
     unsigned int count;
+    unsigned int iterator_index;
+    void *iterator_object;
 };
 
 // Add object into 'map'. If map is not initialized, initialize it with default size
@@ -28,6 +32,15 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
 
 // Get object from 'map' by 'key'
 int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value);
+
+// Delete key 'key' from the 'map'
+int map_del(struct MAP *map, const void *key, unsigned int key_size);
+
+// Prepeare to iterations
+int map_get_objects_start(struct MAP *map);
+
+// Get next object from the map
+struct MAP_OBJECT *map_get_objects_next(struct MAP *map);
 
 // Init 'map' with initial length of 'length'
 int map_init(struct MAP *map, unsigned int length);

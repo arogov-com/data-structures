@@ -18,7 +18,7 @@ static int map_recalc(struct MAP *map) {
         return MAP_PARAM_ERROR;
     }
     if(map->objects == NULL || map->length == 0) {
-        return MAP_UNINITIALIZED;
+        return MAP_NOT_INITIALIZED;
     }
 
     unsigned int new_length = map->length << 1;
@@ -92,16 +92,12 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
         return MAP_PARAM_ERROR;
     }
 
-    // Map is uninitialized. Initialize map
-    if(map->objects == NULL) {
-        map->objects = malloc(sizeof(struct MAP_OBJECT) * MAP_INITIAL_SIZE);
-        if(map->objects == NULL) {
-            return MAP_MALLOC_ERROR;
+    // Map is not initialized. Initialize map
+    if(map->objects == NULL && map->length == 0) {
+        int ret = map_init(map, MAP_INITIAL_SIZE + 1);
+        if(ret != MAP_OK) {
+            return ret;
         }
-
-        memset(map->objects, 0, sizeof(struct MAP_OBJECT) * MAP_INITIAL_SIZE);
-        map->length = MAP_INITIAL_SIZE;
-        map->count = 0;
     }
 
     // If map filled more than half, double map size
@@ -116,6 +112,7 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
     struct MAP_OBJECT *object = &map->objects[hash];
     struct MAP_OBJECT *next;
 
+    // Collision or value update
     if(object->key) {
         do {
             next = object->ptr;
@@ -137,6 +134,7 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
             object = next ? next : object;
         }while(next);
 
+        // Append new element into the list
         object->ptr = malloc(sizeof(struct MAP_OBJECT));
         if(object->ptr == NULL) {
             return MAP_MALLOC_ERROR;
@@ -171,10 +169,14 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
         return MAP_PARAM_ERROR;
     }
     if(map->objects == NULL) {
-        return MAP_UNINITIALIZED;
+        return MAP_NOT_INITIALIZED;
+    }
+    if(map->count == 0) {
+        return MAP_EMPTY;
     }
 
     unsigned int hash = djb2_hash(key, key_size) % map->length;
+
     // Is nested object
     if(map->objects[hash].ptr) {
         struct MAP_OBJECT *object = &map->objects[hash];
@@ -199,30 +201,118 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
     return MAP_OK;
 }
 
+int map_del(struct MAP *map, const void *key, unsigned int key_size) {
+    if(map == NULL || key == NULL || key_size == 0) {
+        return MAP_PARAM_ERROR;
+    }
+    if(map->objects == NULL || map->length == 0) {
+        return MAP_NOT_INITIALIZED;
+    }
+    if(map->count == 0) {
+        return MAP_EMPTY;
+    }
+
+    unsigned int hash = djb2_hash(key, key_size) % map->length;
+    if(map->objects[hash].key == NULL) {
+        return MAP_KEY_ERROR;
+    }
+
+    struct MAP_OBJECT *object = &map->objects[hash];
+    struct MAP_OBJECT *prev;
+    do {
+        if(object->key_size == key_size && memcmp(object->key, key, key_size) == 0) {
+            free(object->key);
+            free(object->value);
+            // It is head of list
+            if(object == &map->objects[hash]) {
+                object->key = object->ptr ? object->ptr->key : NULL;
+                object->key_size = object->ptr ? object->ptr->key_size : 0;
+                object->value = object->ptr ? object->ptr->value : NULL;
+                object->value_size = object->ptr ? object->ptr->value_size : 0;
+                object->ptr = object->ptr ? object->ptr->ptr : NULL;
+            }
+            else {
+                prev->ptr = object->ptr;
+                free(object);
+            }
+            --map->count;
+            return MAP_OK;
+        }
+        prev = object;
+        object = object->ptr;
+    }while(object);
+
+    return MAP_KEY_ERROR;
+}
+
+int map_get_objects_start(struct MAP *map) {
+    if(map == NULL || map->count == 0) {
+        return MAP_PARAM_ERROR;
+    }
+
+    for(int i = 0; i != map->length; ++i) {
+        if(map->objects[i].key) {
+            map->iterator_index = i;
+            map->iterator_object = &map->objects[i];
+            return MAP_OK;
+        }
+    }
+    return MAP_EMPTY;
+}
+
+struct MAP_OBJECT *map_get_objects_next(struct MAP *map) {
+    if(map == NULL || map->count == 0) {
+        return NULL;
+    }
+
+    if(map->iterator_object == NULL) {
+        ++map->iterator_index;
+    }
+    for(; map->iterator_index != map->length; ++map->iterator_index) {
+        struct MAP_OBJECT *obj = &map->objects[map->iterator_index];
+        if(map->iterator_object == NULL && obj->key) {
+            map->iterator_object = obj;
+        }
+        if(obj->key) {
+            if(map->iterator_object) {
+                while(obj != map->iterator_object) {
+                    obj = obj->ptr;
+                }
+
+                map->iterator_object = obj->ptr;
+                return obj;
+            }
+        }
+    }
+    return NULL;
+}
+
 int map_destroy(struct MAP *map) {
     if(map == NULL) {
         return MAP_PARAM_ERROR;
     }
     if(map->objects == NULL) {
-        return MAP_UNINITIALIZED;
+        return MAP_NOT_INITIALIZED;
     }
 
-    while(map->length--) {
-        if(map->objects[map->length].ptr) {
-            struct MAP_OBJECT *obj = map->objects[map->length].ptr;
-            struct MAP_OBJECT *next;
-            do {
-                next = obj->ptr;
-                free(obj->key);
-                free(obj->value);
-                free(obj);
-                obj = next;
-            }while(next);
-        }
-        if(map->objects[map->length].key) {
-            free(map->objects[map->length].key);
-            free(map->objects[map->length].value);
-            --map->count;
+    if(map->count > 0) {
+        while(map->length--) {
+            if(map->objects[map->length].ptr) {
+                struct MAP_OBJECT *obj = map->objects[map->length].ptr;
+                struct MAP_OBJECT *next;
+                do {
+                    next = obj->ptr;
+                    free(obj->key);
+                    free(obj->value);
+                    free(obj);
+                    obj = next;
+                }while(next);
+            }
+            if(map->objects[map->length].key) {
+                free(map->objects[map->length].key);
+                free(map->objects[map->length].value);
+                --map->count;
+            }
         }
     }
 

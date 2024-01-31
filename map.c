@@ -305,6 +305,7 @@ int map_destroy(struct MAP *map) {
                     free(obj->key);
                     free(obj->value);
                     free(obj);
+                    --map->count;
                     obj = next;
                 }while(next);
             }
@@ -318,7 +319,6 @@ int map_destroy(struct MAP *map) {
 
     free(map->objects);
     map->objects = NULL;
-    map->count = 0;
     map->length = 0;
     return MAP_OK;
 }

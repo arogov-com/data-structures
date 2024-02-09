@@ -164,7 +164,7 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
     return MAP_OK;
 }
 
-int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value) {
+int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value, unsigned int value_size) {
     if(map == NULL) {
         return MAP_PARAM_ERROR;
     }
@@ -182,8 +182,11 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
         struct MAP_OBJECT *object = &map->objects[hash];
         while(object) {
             if(object->key_size == key_size && memcmp(object->key, key, key_size) == 0) {
+                if(object->value_size > value_size) {
+                    return MAP_VALUE_ERROR;
+                }
                 memcpy(value, object->value, object->value_size);
-                return MAP_OK;
+                return object->value_size;
             }
             object = object->ptr;
         }
@@ -191,14 +194,18 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
     }
     else {
         if(map->objects[hash].key_size == key_size && memcmp(map->objects[hash].key, key, key_size) == 0) {
+            if(map->objects[hash].value_size > value_size) {
+                return MAP_VALUE_ERROR;
+            }
             memcpy(value, map->objects[hash].value, map->objects[hash].value_size);
+            return map->objects[hash].value_size;
         }
         else {
             return MAP_KEY_ERROR;
         }
     }
 
-    return MAP_OK;
+    return MAP_KEY_ERROR;
 }
 
 int map_del(struct MAP *map, const void *key, unsigned int key_size) {

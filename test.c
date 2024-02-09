@@ -592,22 +592,25 @@ void test_map() {
     // Check that each value matches the key
     for(int i = 0; i != MAP_ENTRIES; ++i) {
         value = -1;
-        assert(map_get(&map, &keys[i * 10], 10, &value) == MAP_OK);
+        assert(map_get(&map, &keys[i * 10], 10, &value, sizeof(value)) == sizeof(value));
         assert(value == values[i]);
     }
 
+    // Check invalid value size
+    assert(map_get(&map, &keys[49999 * 10], 10, &value, 2) == MAP_VALUE_ERROR);
+
     // Check value changing
     value = -1;
-    assert(map_add(&map, "key49999", 10, &value, sizeof(int)) == MAP_OK);
+    assert(map_add(&map, &keys[49999 * 10], 10, &value, sizeof(int)) == MAP_OK);
     value = 0;
-    assert(map_get(&map, "key49999", 10, &value) == MAP_OK);
+    assert(map_get(&map, &keys[49999 * 10], 10, &value, sizeof(value)) == sizeof(value));
     assert(value == -1);
 
     // Check value size changing
     char hello[] = "Hello, World!";
-    assert(map_add(&map, "key49998", 10, hello, sizeof(hello)) == MAP_OK);
+    assert(map_add(&map, &keys[49998 * 10], 10, hello, sizeof(hello)) == MAP_OK);
     memset(hello, 0, sizeof(hello));
-    assert(map_get(&map, "key49998", 10, hello) == MAP_OK);
+    assert(map_get(&map, &keys[49998 * 10], 10, hello, sizeof(hello)) == sizeof(hello));
     assert(memcmp(hello, "Hello, World!", sizeof(hello)) == 0);
 
     // Check iteration by the map

@@ -27,6 +27,7 @@ static int map_recalc(struct MAP *map) {
     if(new_obj == NULL) {
         return MAP_MALLOC_ERROR;
     }
+    memset(new_obj, 0, sizeof(struct MAP_OBJECT) * new_length);
 
     for(int i = 0; i != map->length; ++i) {
         // Check if old array has object at position 'i'
@@ -58,10 +59,11 @@ static int map_recalc(struct MAP *map) {
                 }
 
                 // Free nested object in old array
+                void *ptr = obj->ptr;
                 if(obj != &map->objects[i]) {
                     free(obj);
                 }
-                obj = obj->ptr;
+                obj = ptr;
             }while(obj);
         }
     }

@@ -227,7 +227,7 @@ int map_del(struct MAP *map, const void *key, unsigned int key_size) {
     }
 
     struct MAP_OBJECT *object = &map->objects[hash];
-    struct MAP_OBJECT *prev;
+    struct MAP_OBJECT *prev = NULL;
     do {
         if(object->key_size == key_size && memcmp(object->key, key, key_size) == 0) {
             free(object->key);

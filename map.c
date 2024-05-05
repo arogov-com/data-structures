@@ -75,18 +75,20 @@ static int map_recalc(struct MAP *map) {
 }
 
 int map_init(struct MAP *map, unsigned int length) {
-    if(map->objects == NULL && length > MAP_INITIAL_SIZE) {
-        map->objects = malloc(sizeof(struct MAP_OBJECT) * length);
-        if(map->objects == NULL) {
-            return MAP_MALLOC_ERROR;
-        }
-
-        memset(map->objects, 0, sizeof(struct MAP_OBJECT) * length);
-        map->count = 0;
-        map->length = length;
-        return MAP_OK;
+    if(map == NULL || map->objects != NULL) {
+        return MAP_PARAM_ERROR;
     }
-    return MAP_PARAM_ERROR;
+
+    memset(map, 0, sizeof(struct MAP));
+    map->length = length;
+
+    map->objects = malloc(sizeof(struct MAP_OBJECT) * length);
+    if(map->objects == NULL) {
+        return MAP_MALLOC_ERROR;
+    }
+    memset(map->objects, 0, sizeof(struct MAP_OBJECT) * length);
+
+    return MAP_OK;
 }
 
 int map_add(struct MAP *map, const void *key, unsigned int key_size, const void *value, unsigned int value_size) {

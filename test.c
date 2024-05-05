@@ -578,6 +578,7 @@ void test_map() {
     memset(keys, 0, MAP_ENTRIES * 10);
 
     struct MAP map = {.objects = NULL};
+    assert(map_init(&map, 150000) == MAP_OK);
 
     // Fill keys and values arrays, add them into the map
     for(int i = 0; i != MAP_ENTRIES; ++i) {

@@ -40,14 +40,12 @@ static int map_recalc(struct MAP *map) {
                 if(new_obj[hash].key) {
                     struct MAP_OBJECT *inner_obj = &new_obj[hash];
                     // Go to the last nested object in list
-                    while(inner_obj->ptr) {
-                        inner_obj = inner_obj->ptr;
-                    }
+                    for(; inner_obj->ptr; inner_obj = inner_obj->ptr);
 
                     inner_obj->ptr = malloc(sizeof(struct MAP_OBJECT));
                     if(inner_obj->ptr == NULL) {
-                        // Need to delete all created objects
-                        free(new_obj);
+                        struct MAP temp = {.objects=new_obj, .length=new_length, .count = 1};
+                        map_destroy(&temp);
                         return MAP_MALLOC_ERROR;
                     }
                     *inner_obj->ptr = *obj;
@@ -183,8 +181,7 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
 
     // Is nested object
     if(map->objects[hash].ptr) {
-        struct MAP_OBJECT *object = &map->objects[hash];
-        while(object) {
+        for(struct MAP_OBJECT *object = &map->objects[hash]; object; object = object->ptr) {
             if(object->key_size == key_size && memcmp(object->key, key, key_size) == 0) {
                 if(object->value_size > value_size) {
                     return MAP_VALUE_ERROR;
@@ -192,7 +189,6 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
                 memcpy(value, object->value, object->value_size);
                 return object->value_size;
             }
-            object = object->ptr;
         }
         return MAP_KEY_ERROR;
     }

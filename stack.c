@@ -1,3 +1,5 @@
+// Copyright (C) 2024 Aleksei Rogov <alekzzzr@gmail.com>. All rights reserved.
+
 #include <string.h>
 #include <stdlib.h>
 #include "stack.h"

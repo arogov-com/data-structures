@@ -1,15 +1,18 @@
-#include <stdio.h>
-#include <sys/time.h>
-#include "time.h"
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
+// Copyright (C) 2024 Aleksei Rogov <alekzzzr@gmail.com>. All rights reserved.
+
 #include <assert.h>
-#include "list.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
+#include <time.h>
+#include "array.h"
 #include "list_multitype.h"
-#include "stack.h"
-#include "queue.h"
+#include "list.h"
 #include "map.h"
+#include "queue.h"
+#include "stack.h"
 
 #define STACK_SIZE  4
 #define MAP_ENTRIES 100000
@@ -635,6 +638,107 @@ void test_map() {
     printf("PASS\n");
 }
 
+void test_array() {
+    printf("%-24s", "Check array: ");
+
+    // Init array
+    int err;
+    struct ARRAY *a = array_init(&err);
+    assert(a != NULL);
+
+    // Add objects to the array
+    for(int i = 0; i < 100; ++i) {
+        assert((err = array_append(a, &i, sizeof(i))) == 0);
+    }
+
+    // Check objects
+    assert(array_get_objects_start(a, 0) == 0);
+    struct ARRAY_ENTRY *e;
+    for(int i = 0; i < 100; ++i) {
+        assert((e = array_get_objects_next(a)) != NULL);
+        assert(*(int *)e->data == i);
+    }
+    assert(array_len(a) == 100);
+
+    // Check end of array
+    assert(array_get_objects_next(a) == NULL);
+
+    // Put an object at the index 25
+    int n = 255;
+    assert(array_put(a, &n, sizeof(n), 25) == 0);
+    // Get and check changed object
+    n = 0;
+    assert(array_get(a, 25, &n, sizeof(n)) == 0);
+    assert(n == 255);
+
+    // Put object into the array at invalid index
+    n = 100;
+    assert(array_put(a, &n, sizeof(n), 100) == ARRAY_INVALID_INDEX);
+
+    // Test the object at invalid index
+    assert(array_get(a, 100, &n, sizeof(n)) == ARRAY_INVALID_INDEX);
+
+    // Delete slice at center a[25:74]
+    assert(array_del(a, 25, 74) == 0);
+
+    // Check if array slice was deleted
+    assert(array_get_objects_start(a, 0) == 0);
+    for(int i = 0; i < 25; ++i) {
+        assert((e = array_get_objects_next(a)) != NULL);
+        assert(*(int *)e->data == i);
+    }
+    assert(array_get_objects_start(a, 25) == 0);
+    for(int i = 75; i < 100; ++i) {
+        assert((e = array_get_objects_next(a)) != NULL);
+        assert(*(int *)e->data == i);
+    }
+    assert(array_len(a) == 50);
+
+    // Delete slice at start
+    assert(array_del(a, 0, 9) == 0);
+    assert(array_len(a) == 40);
+
+    // Delete slice from center to end
+    assert(array_del(a, 15, 100) == 0);
+    assert(array_get_objects_start(a, 0) == 0);
+    for(int i = 10; i < 24; ++i) {
+        assert((e = array_get_objects_next(a)) != NULL);
+        assert(*(int *)e->data == i);
+    }
+    assert(array_len(a) == 15);
+
+    // Insert at start
+    n = 9999;
+    assert(array_insert(a, 0, &n, sizeof(n)) == 0);
+    n = 0;
+    assert(array_get(a, 0, &n, sizeof(n)) == 0);
+    assert(n == 9999);
+
+    // Insert at center
+    n = 8888;
+    assert(array_insert(a, 8, &n, sizeof(n)) == 0);
+    n = 0;
+    assert(array_get(a, 8, &n, sizeof(n)) == 0);
+    assert(n == 8888);
+
+    // Insert at end
+    n = 1111;
+    assert(array_insert(a, 100, &n, sizeof(n)) == 0);
+    n = 0;
+    assert(array_get(a, array_len(a) - 1, &n, sizeof(n)) == 0);
+    assert(n == 1111);
+
+    // Delete all objects from array
+    assert(array_del(a, 0, 100) == 0);
+    assert(array_len(a) == 0);
+    assert(array_size(a) == sizeof(struct ARRAY));
+
+    // Destroy array
+    assert(array_destroy(a) == 0);
+
+    printf("PASS\n");
+}
+
 int main(int argc, char const *argv[]) {
     test_map();
     test_stack();
@@ -642,6 +746,7 @@ int main(int argc, char const *argv[]) {
     test_queue();
     test_list();
     test_mt_list();
+    test_array();
 
     return 0;
 }

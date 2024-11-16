@@ -1,3 +1,5 @@
+// Copyright (C) 2024 Aleksei Rogov <alekzzzr@gmail.com>. All rights reserved.
+
 #include <stdlib.h>
 #include <string.h>
 #include "map.h"
@@ -78,12 +80,13 @@ int map_init(struct MAP *map, unsigned int length) {
     }
 
     memset(map, 0, sizeof(struct MAP));
-    map->length = length;
 
     map->objects = malloc(sizeof(struct MAP_OBJECT) * length);
     if(map->objects == NULL) {
         return MAP_MALLOC_ERROR;
     }
+
+    map->length = length;
     memset(map->objects, 0, sizeof(struct MAP_OBJECT) * length);
 
     return MAP_OK;

@@ -20,11 +20,12 @@ struct ARRAY {
     size_t current;
     size_t index;
     size_t len;
+    size_t size;
 };
 
-// Init array. If err is not NULL place code to it
-// Return ARRAY object address
-struct ARRAY* array_init(int *err);
+// Init array 'array'
+// Return 0 if success or error code
+int array_init(struct ARRAY *array);
 
 // Destroy array 'array'
 // Return 0 if success or error code

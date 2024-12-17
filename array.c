@@ -176,8 +176,13 @@ int array_del(struct ARRAY *array, size_t start, size_t end) {
     end = end > array->current - 1 ? array->current - 1 : end;
     array->current -= (end - start + 1);
     size_t new_len = 1;
-    while(new_len < array->current) {
-        new_len = new_len << 1;
+    if(array->current != 0) {
+        while(new_len < array->current) {
+            new_len = new_len << 1;
+        }
+    }
+    else {
+        new_len = 0;
     }
 
     array_resize(array, new_len);

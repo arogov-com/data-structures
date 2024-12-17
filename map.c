@@ -239,7 +239,9 @@ int map_del(struct MAP *map, const void *key, unsigned int key_size) {
                 object->key_size = object->ptr ? object->ptr->key_size : 0;
                 object->value = object->ptr ? object->ptr->value : NULL;
                 object->value_size = object->ptr ? object->ptr->value_size : 0;
+                void *ptr = object->ptr;
                 object->ptr = object->ptr ? object->ptr->ptr : NULL;
+                free(ptr);
             }
             else {
                 prev->ptr = object->ptr;

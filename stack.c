@@ -66,7 +66,7 @@ int stack_del(struct STACK *stack) {
     free(stack->ptr);
     free(stack);
 
-    return 1;
+    return STACK_SUCCESS;
 }
 
 int stack_push(struct STACK *stack, const void *object) {

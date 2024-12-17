@@ -16,6 +16,7 @@
 
 #define STACK_SIZE  4
 #define MAP_ENTRIES 100000
+#define ARRAY_SIZE 100000
 
 void test_queue() {
     printf("%-24s", "Check queue: ");
@@ -464,6 +465,7 @@ void test_mt_stack() {
     // Check empty stack length
     assert(mt_stack_length(&mtstack) == 0);
 
+    free(p);
     printf("PASS\n");
 }
 
@@ -559,6 +561,9 @@ void test_stack() {
     // Pop object from empty stack
     assert(stack_pop(stack, &person1) == STACK_IS_EMPTY);
 
+    // Destroy stack
+    assert(stack_del(stack) == STACK_SUCCESS);
+
     printf("PASS\n");
 }
 
@@ -635,6 +640,9 @@ void test_map() {
     assert(map_destroy(&map) == MAP_OK);
     assert(map.count == 0 && map.length == 0 && map.objects == NULL);
 
+    free(keys);
+    free(values);
+
     printf("PASS\n");
 }
 
@@ -646,59 +654,59 @@ void test_array() {
     assert(array_init(&a) == 0);
 
     // Add objects to the array
-    for(int i = 0; i < 100; ++i) {
+    for(int i = 0; i < ARRAY_SIZE; ++i) {
         assert(array_append(&a, &i, sizeof(i)) == 0);
     }
 
     // Check objects
     assert(array_get_objects_start(&a, 0) == 0);
     struct ARRAY_ENTRY *e;
-    for(int i = 0; i < 100; ++i) {
+    for(int i = 0; i < ARRAY_SIZE; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
     }
-    assert(array_len(&a) == 100);
+    assert(array_len(&a) == ARRAY_SIZE);
 
     // Check end of array
     assert(array_get_objects_next(&a) == NULL);
 
-    // Put an object at the index 25
+    // Put an object at the index ARRA
     int n = 255;
-    assert(array_put(&a, &n, sizeof(n), 25) == 0);
+    assert(array_put(&a, &n, sizeof(n), ARRAY_SIZE / 4) == 0);
     // Get and check changed object
     n = 0;
-    assert(array_get(&a, 25, &n, sizeof(n)) == 0);
+    assert(array_get(&a, ARRAY_SIZE / 4, &n, sizeof(n)) == 0);
     assert(n == 255);
 
     // Put object into the array at invalid index
-    n = 100;
-    assert(array_put(&a, &n, sizeof(n), 100) == ARRAY_INVALID_INDEX);
+    n = ARRAY_SIZE;
+    assert(array_put(&a, &n, sizeof(n), ARRAY_SIZE) == ARRAY_INVALID_INDEX);
 
     // Test the object at invalid index
-    assert(array_get(&a, 100, &n, sizeof(n)) == ARRAY_INVALID_INDEX);
+    assert(array_get(&a, ARRAY_SIZE, &n, sizeof(n)) == ARRAY_INVALID_INDEX);
 
-    // Delete slice at center a[25:74]
-    assert(array_del(&a, 25, 74) == 0);
+    // Delete slice at center a[ARRAY_SIZE/4:ARRAY_SIZE*3/4]
+    assert(array_del(&a, ARRAY_SIZE / 4, ARRAY_SIZE - ARRAY_SIZE / 4 - 1) == 0);
 
     // Check if array slice was deleted
     assert(array_get_objects_start(&a, 0) == 0);
-    for(int i = 0; i < 25; ++i) {
+    for(int i = 0; i < ARRAY_SIZE / 4; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
     }
-    assert(array_get_objects_start(&a, 25) == 0);
-    for(int i = 75; i < 100; ++i) {
+    assert(array_get_objects_start(&a, ARRAY_SIZE/4) == 0);
+    for(int i = ARRAY_SIZE - ARRAY_SIZE / 4; i < ARRAY_SIZE; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
     }
-    assert(array_len(&a) == 50);
+    assert(array_len(&a) == ARRAY_SIZE / 2);
 
     // Delete slice at start
     assert(array_del(&a, 0, 9) == 0);
-    assert(array_len(&a) == 40);
+    assert(array_len(&a) == ARRAY_SIZE / 2 - 10);
 
     // Delete slice from center to end
-    assert(array_del(&a, 15, 100) == 0);
+    assert(array_del(&a, 15, ARRAY_SIZE) == 0);
     assert(array_get_objects_start(&a, 0) == 0);
     for(int i = 10; i < 24; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
@@ -724,14 +732,14 @@ void test_array() {
 
     // Insert at end
     n = 1111;
-    assert(array_insert(&a, 100, &n, sizeof(n)) == 0);
+    assert(array_insert(&a, ARRAY_SIZE, &n, sizeof(n)) == 0);
     n = 0;
     assert(array_get(&a, array_len(&a) - 1, &n, sizeof(n)) == 0);
     assert(n == 1111);
     assert(array_len(&a) == 18);
 
     // Delete all objects from array
-    assert(array_del(&a, 0, 100) == 0);
+    assert(array_del(&a, 0, ARRAY_SIZE) == 0);
     assert(array_len(&a) == 0);
     assert(array_size(&a) == sizeof(struct ARRAY));
 

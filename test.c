@@ -569,57 +569,50 @@ void test_stack() {
 
 void test_map() {
     printf("%-24s", "Check map: ");
-    int value;
-
-    int *values = malloc(MAP_ENTRIES * sizeof(int));
-    if(values == NULL) {
-        printf("Can't allocate memory for values\n");
-        return;
-    }
-    char *keys = malloc(MAP_ENTRIES * 10);
-    if(values == NULL) {
-        free(values);
-        printf("Can't allocate memory for keys\n");
-        return;
-    }
-    memset(values, 0, sizeof(int) * MAP_ENTRIES);
-    memset(keys, 0, MAP_ENTRIES * 10);
+    size_t value;
+    char key[16];
 
     struct MAP map = {.objects = NULL};
     assert(map_init(&map, 150000) == MAP_OK);
 
     // Fill keys and values arrays, add them into the map
-    for(int i = 0; i != MAP_ENTRIES; ++i) {
-        values[i] = i;
-        sprintf(&keys[i * 10], "key%i", i);
-        assert(map_add(&map, &keys[i * 10], 10, &values[i], sizeof(int)) == MAP_OK);
+    memset(key, 0, sizeof(key));
+    for(size_t i = 0; i != MAP_ENTRIES; ++i) {
+        sprintf(key, "key%ld", i);
+        assert(map_add(&map, key, sizeof(key), &i, sizeof(i)) == MAP_OK);
     }
 
     // Check number of entries in the map
     assert(map.count == MAP_ENTRIES);
 
     // Check that each value matches the key
-    for(int i = 0; i != MAP_ENTRIES; ++i) {
+    memset(key, 0, sizeof(key));
+    for(size_t i = 0; i != MAP_ENTRIES; ++i) {
         value = -1;
-        assert(map_get(&map, &keys[i * 10], 10, &value, sizeof(value)) == sizeof(value));
-        assert(value == values[i]);
+        sprintf(key, "key%ld", i);
+        assert(map_get(&map, key, sizeof(key), &value, sizeof(value)) == sizeof(value));
+        assert(value == i);
     }
 
     // Check invalid value size
-    assert(map_get(&map, &keys[49999 * 10], 10, &value, 2) == MAP_VALUE_ERROR);
+    memset(key, 0, sizeof(key));
+    sprintf(key, "key49999");
+    assert(map_get(&map, key, sizeof(key), &value, 2) == MAP_VALUE_ERROR);
 
     // Check value changing
     value = -1;
-    assert(map_add(&map, &keys[49999 * 10], 10, &value, sizeof(int)) == MAP_OK);
+    assert(map_add(&map, key, sizeof(key), &value, sizeof(value)) == MAP_OK);
     value = 0;
-    assert(map_get(&map, &keys[49999 * 10], 10, &value, sizeof(value)) == sizeof(value));
+    assert(map_get(&map, key, sizeof(key), &value, sizeof(value)) == sizeof(value));
     assert(value == -1);
 
     // Check value size changing
     char hello[] = "Hello, World!";
-    assert(map_add(&map, &keys[49998 * 10], 10, hello, sizeof(hello)) == MAP_OK);
+    memset(key, 0, sizeof(key));
+    sprintf(key, "key49998");
+    assert(map_add(&map, key, sizeof(key), hello, sizeof(hello)) == MAP_OK);
     memset(hello, 0, sizeof(hello));
-    assert(map_get(&map, &keys[49998 * 10], 10, hello, sizeof(hello)) == sizeof(hello));
+    assert(map_get(&map, key, sizeof(key), hello, sizeof(hello)) == sizeof(hello));
     assert(memcmp(hello, "Hello, World!", sizeof(hello)) == 0);
 
     // Check iteration by the map
@@ -631,17 +624,16 @@ void test_map() {
     assert(i == MAP_ENTRIES);
 
     // Check key deleting
-    for(int i = 0; i != MAP_ENTRIES; ++i) {
-        assert(map_del(&map, &keys[i * 10], 10) == MAP_OK);
+    memset(key, 0, sizeof(key));
+    for(size_t i = 0; i != MAP_ENTRIES; ++i) {
+        sprintf(key, "key%ld", i);
+        assert(map_del(&map, key, sizeof(key)) == MAP_OK);
     }
     assert(map.count == 0);
 
     // Destroy the map
     assert(map_destroy(&map) == MAP_OK);
     assert(map.count == 0 && map.length == 0 && map.objects == NULL);
-
-    free(keys);
-    free(values);
 
     printf("PASS\n");
 }

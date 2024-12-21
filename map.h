@@ -17,30 +17,30 @@
 struct MAP_OBJECT {
     void *key;
     void *value;
-    unsigned int key_size;
-    unsigned int value_size;
+    size_t key_size;
+    size_t value_size;
     struct MAP_OBJECT *ptr;
 };
 
 struct MAP {
     struct MAP_OBJECT *objects;
-    unsigned int length;
-    unsigned int count;
-    unsigned int iterator_index;
+    size_t length;
+    size_t count;
+    size_t iterator_index;
     void *iterator_object;
 };
 
 // Add object into 'map'. If map is not initialized, initialize it with default size
 // Return error code
-int map_add(struct MAP *map, const void *key, unsigned int key_size, const void *value, unsigned int value_size);
+int map_add(struct MAP *map, const void *key, size_t key_size, const void *value, size_t value_size);
 
 // Get object from 'map' by 'key'
 // Return value size
-int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value, unsigned int value_size);
+int map_get(struct MAP *map, const void *key, size_t key_size, void *value, size_t value_size);
 
 // Delete key 'key' from the 'map'
 // Return error code
-int map_del(struct MAP *map, const void *key, unsigned int key_size);
+int map_del(struct MAP *map, const void *key, size_t key_size);
 
 // Prepeare to iterations
 // Return error code
@@ -52,7 +52,7 @@ struct MAP_OBJECT *map_get_objects_next(struct MAP *map);
 
 // Init 'map' with initial length of 'length'
 // Return error code
-int map_init(struct MAP *map, unsigned int length);
+int map_init(struct MAP *map, size_t length);
 
 // Destroy 'map'
 // Return error code

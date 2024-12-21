@@ -5,3 +5,4 @@
 - Multiple type stack
 - Multiple type queue
 - Multiple type hash map
+- Multiple type array

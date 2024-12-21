@@ -11,5 +11,5 @@ default: $(PROJECT)
 clean:
 	rm $(PROJECT)
 
-$(PROJECT): $(SOURCES) $(HEADERS)
+$(PROJECT): $(SOURCES) $(HEADERS) Makefile
 	$(CC) $(CFLAGS) -o $(PROJECT) $(SOURCES)

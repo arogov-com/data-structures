@@ -5,7 +5,7 @@
 #include "map.h"
 
 // Calculate DJB2 hash
-static unsigned djb2_hash(const void *data, unsigned int len) {
+static unsigned djb2_hash(const void *data, size_t len) {
     unsigned hash = 5381;
     while(len--) {
         hash = ((hash << 5) + hash) ^ *((char *)data);
@@ -23,7 +23,7 @@ static int map_recalc(struct MAP *map) {
         return MAP_NOT_INITIALIZED;
     }
 
-    unsigned int new_length = map->length << 1;
+    size_t new_length = map->length << 1;
 
     struct MAP_OBJECT *new_obj = malloc(sizeof(struct MAP_OBJECT) * new_length);
     if(new_obj == NULL) {
@@ -31,7 +31,7 @@ static int map_recalc(struct MAP *map) {
     }
     memset(new_obj, 0, sizeof(struct MAP_OBJECT) * new_length);
 
-    for(int i = 0; i != map->length; ++i) {
+    for(size_t i = 0; i != map->length; ++i) {
         // Check if old array has object at position 'i'
         if(map->objects[i].key) {
             struct MAP_OBJECT *obj = &map->objects[i];
@@ -74,7 +74,7 @@ static int map_recalc(struct MAP *map) {
     return MAP_OK;
 }
 
-int map_init(struct MAP *map, unsigned int length) {
+int map_init(struct MAP *map, size_t length) {
     if(map == NULL || map->objects != NULL) {
         return MAP_PARAM_ERROR;
     }
@@ -92,7 +92,7 @@ int map_init(struct MAP *map, unsigned int length) {
     return MAP_OK;
 }
 
-int map_add(struct MAP *map, const void *key, unsigned int key_size, const void *value, unsigned int value_size) {
+int map_add(struct MAP *map, const void *key, size_t key_size, const void *value, size_t value_size) {
     if(map == NULL || key == NULL || value == NULL || key_size == 0 || value_size == 0) {
         return MAP_PARAM_ERROR;
     }
@@ -169,7 +169,7 @@ int map_add(struct MAP *map, const void *key, unsigned int key_size, const void 
     return MAP_OK;
 }
 
-int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value, unsigned int value_size) {
+int map_get(struct MAP *map, const void *key, size_t key_size, void *value, size_t value_size) {
     if(map == NULL) {
         return MAP_PARAM_ERROR;
     }
@@ -211,7 +211,7 @@ int map_get(struct MAP *map, const void *key, unsigned int key_size, void *value
     return MAP_KEY_ERROR;
 }
 
-int map_del(struct MAP *map, const void *key, unsigned int key_size) {
+int map_del(struct MAP *map, const void *key, size_t key_size) {
     if(map == NULL || key == NULL || key_size == 0) {
         return MAP_PARAM_ERROR;
     }
@@ -262,7 +262,7 @@ int map_get_objects_start(struct MAP *map) {
         return MAP_PARAM_ERROR;
     }
 
-    for(int i = 0; i != map->length; ++i) {
+    for(size_t i = 0; i != map->length; ++i) {
         if(map->objects[i].key) {
             map->iterator_index = i;
             map->iterator_object = &map->objects[i];

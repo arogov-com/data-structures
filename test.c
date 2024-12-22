@@ -16,7 +16,8 @@
 
 #define STACK_SIZE  4
 #define MAP_ENTRIES 100000
-#define ARRAY_SIZE 100000
+#define ARRAY_SIZE  100000
+
 
 void test_queue() {
     printf("%-24s", "Check queue: ");
@@ -263,7 +264,7 @@ void test_mt_list() {
     // Add PERSON
     person.age = 35;
     person.gender = 'm';
-    strncpy(person.name, "Aleksei", 32);
+    strncpy(person.name, "Aleksei", sizeof(person.name));
     assert(mt_list_add(&mt_list, &person, sizeof(struct PERSON)) == MT_LIST_SUCCESS);
 
     // Add UDP
@@ -643,15 +644,15 @@ void test_array() {
 
     // Init array
     struct ARRAY a;
-    assert(array_init(&a) == 0);
+    assert(array_init(&a) == ARRAY_SUCCESS);
 
     // Add objects to the array
     for(int i = 0; i < ARRAY_SIZE; ++i) {
-        assert(array_append(&a, &i, sizeof(i)) == 0);
+        assert(array_append(&a, &i, sizeof(i)) == ARRAY_SUCCESS);
     }
 
     // Check objects
-    assert(array_get_objects_start(&a, 0) == 0);
+    assert(array_get_objects_start(&a, 0) == ARRAY_SUCCESS);
     struct ARRAY_ENTRY *e;
     for(int i = 0; i < ARRAY_SIZE; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
@@ -664,10 +665,10 @@ void test_array() {
 
     // Put an object at the index ARRA
     int n = 255;
-    assert(array_put(&a, &n, sizeof(n), ARRAY_SIZE / 4) == 0);
+    assert(array_put(&a, &n, sizeof(n), ARRAY_SIZE / 4) == ARRAY_SUCCESS);
     // Get and check changed object
     n = 0;
-    assert(array_get(&a, ARRAY_SIZE / 4, &n, sizeof(n)) == 0);
+    assert(array_get(&a, ARRAY_SIZE / 4, &n, sizeof(n)) == ARRAY_SUCCESS);
     assert(n == 255);
 
     // Put object into the array at invalid index
@@ -678,15 +679,15 @@ void test_array() {
     assert(array_get(&a, ARRAY_SIZE, &n, sizeof(n)) == ARRAY_INVALID_INDEX);
 
     // Delete slice at center a[ARRAY_SIZE/4:ARRAY_SIZE*3/4]
-    assert(array_del(&a, ARRAY_SIZE / 4, ARRAY_SIZE - ARRAY_SIZE / 4 - 1) == 0);
+    assert(array_del(&a, ARRAY_SIZE / 4, ARRAY_SIZE - ARRAY_SIZE / 4 - 1) == ARRAY_SUCCESS);
 
     // Check if array slice was deleted
-    assert(array_get_objects_start(&a, 0) == 0);
+    assert(array_get_objects_start(&a, 0) == ARRAY_SUCCESS);
     for(int i = 0; i < ARRAY_SIZE / 4; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
     }
-    assert(array_get_objects_start(&a, ARRAY_SIZE/4) == 0);
+    assert(array_get_objects_start(&a, ARRAY_SIZE / 4) == ARRAY_SUCCESS);
     for(int i = ARRAY_SIZE - ARRAY_SIZE / 4; i < ARRAY_SIZE; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
@@ -694,12 +695,12 @@ void test_array() {
     assert(array_len(&a) == ARRAY_SIZE / 2);
 
     // Delete slice at start
-    assert(array_del(&a, 0, 9) == 0);
+    assert(array_del(&a, 0, 9) == ARRAY_SUCCESS);
     assert(array_len(&a) == ARRAY_SIZE / 2 - 10);
 
     // Delete slice from center to end
-    assert(array_del(&a, 15, ARRAY_SIZE) == 0);
-    assert(array_get_objects_start(&a, 0) == 0);
+    assert(array_del(&a, 15, ARRAY_SIZE) == ARRAY_SUCCESS);
+    assert(array_get_objects_start(&a, 0) == ARRAY_SUCCESS);
     for(int i = 10; i < 24; ++i) {
         assert((e = array_get_objects_next(&a)) != NULL);
         assert(*(int *)e->data == i);
@@ -708,35 +709,35 @@ void test_array() {
 
     // Insert at start
     n = 9999;
-    assert(array_insert(&a, 0, &n, sizeof(n)) == 0);
+    assert(array_insert(&a, 0, &n, sizeof(n)) == ARRAY_SUCCESS);
     n = 0;
-    assert(array_get(&a, 0, &n, sizeof(n)) == 0);
+    assert(array_get(&a, 0, &n, sizeof(n)) == ARRAY_SUCCESS);
     assert(n == 9999);
     assert(array_len(&a) == 16);
 
     // Insert at center
     n = 8888;
-    assert(array_insert(&a, 8, &n, sizeof(n)) == 0);
+    assert(array_insert(&a, 8, &n, sizeof(n)) == ARRAY_SUCCESS);
     n = 0;
-    assert(array_get(&a, 8, &n, sizeof(n)) == 0);
+    assert(array_get(&a, 8, &n, sizeof(n)) == ARRAY_SUCCESS);
     assert(n == 8888);
     assert(array_len(&a) == 17);
 
     // Insert at end
     n = 1111;
-    assert(array_insert(&a, ARRAY_SIZE, &n, sizeof(n)) == 0);
+    assert(array_insert(&a, ARRAY_SIZE, &n, sizeof(n)) == ARRAY_SUCCESS);
     n = 0;
-    assert(array_get(&a, array_len(&a) - 1, &n, sizeof(n)) == 0);
+    assert(array_get(&a, array_len(&a) - 1, &n, sizeof(n)) == ARRAY_SUCCESS);
     assert(n == 1111);
     assert(array_len(&a) == 18);
 
     // Delete all objects from array
-    assert(array_del(&a, 0, ARRAY_SIZE) == 0);
+    assert(array_del(&a, 0, ARRAY_SIZE) == ARRAY_SUCCESS);
     assert(array_len(&a) == 0);
     assert(array_size(&a) == sizeof(struct ARRAY));
 
     // Destroy array
-    assert(array_destroy(&a) == 0);
+    assert(array_destroy(&a) == ARRAY_SUCCESS);
 
     printf("PASS\n");
 }

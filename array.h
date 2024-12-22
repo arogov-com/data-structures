@@ -3,20 +3,23 @@
 #ifndef _ARRAY_H
 #define _ARRAY_H
 
+#define ARRAY_INITIAL_SIZE    4
+
 #define ARRAY_INVALID_LEN    -1
 #define ARRAY_INVALID_OBJSZ  -2
 #define ARRAY_MALLOC_ERROR   -3
 #define ARRAY_INVALID_PTR    -4
 #define ARRAY_INVALID_INDEX  -5
+#define ARRAY_SUCCESS         0
 
 
 struct ARRAY_ENTRY {
-    void *data;
     size_t size;
+    char data[];
 };
 
 struct ARRAY {
-    struct ARRAY_ENTRY *data;
+    struct ARRAY_ENTRY **data;
     size_t current;
     size_t index;
     size_t len;

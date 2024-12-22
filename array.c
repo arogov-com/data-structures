@@ -11,11 +11,11 @@ int array_init(struct ARRAY *array) {
 
     memset(array, 0, sizeof(struct ARRAY));
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 static int array_resize(struct ARRAY *array, size_t size) {
-    void *ptr = realloc(array->data, size * sizeof(struct ARRAY_ENTRY));
+    void *ptr = realloc(array->data, size * sizeof(struct ARRAY_ENTRY**));
     if(ptr == NULL) {
         return ARRAY_MALLOC_ERROR;
     }
@@ -23,7 +23,7 @@ static int array_resize(struct ARRAY *array, size_t size) {
     array->data = ptr;
     array->len = size;
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_destroy(struct ARRAY *array) {
@@ -33,13 +33,13 @@ int array_destroy(struct ARRAY *array) {
 
     if(array->data) {
         for(size_t i = 0; i < array->current; ++i) {
-            free(array->data[i].data);
+            free(array->data[i]);
         }
         free(array->data);
     }
     memset(array, 0, sizeof(struct ARRAY));
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_append(struct ARRAY *array, const void *src, size_t object_size) {
@@ -58,7 +58,7 @@ int array_append(struct ARRAY *array, const void *src, size_t object_size) {
             }
         }
         else {
-            array->data = malloc(sizeof(struct ARRAY_ENTRY));
+            array->data = malloc(sizeof(struct ARRAY_ENTRY**) * ARRAY_INITIAL_SIZE);
             if(array->data == NULL) {
                 return ARRAY_MALLOC_ERROR;
             }
@@ -66,16 +66,16 @@ int array_append(struct ARRAY *array, const void *src, size_t object_size) {
         }
     }
 
-    array->data[array->current].data = malloc(object_size);
-    if(array->data[array->current].data == NULL) {
+    array->data[array->current] = malloc(sizeof(struct ARRAY_ENTRY) + object_size);
+    if(array->data[array->current] == NULL) {
         return ARRAY_MALLOC_ERROR;
     }
-    memcpy(array->data[array->current].data, src, object_size);
-    array->data[array->current].size = object_size;
+    array->data[array->current]->size = object_size;
+    memcpy(array->data[array->current]->data, src, object_size);
     ++array->current;
     array->size += object_size;
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_put(struct ARRAY *array, const void *src, size_t object_size, size_t index) {
@@ -89,20 +89,20 @@ int array_put(struct ARRAY *array, const void *src, size_t object_size, size_t i
         return ARRAY_INVALID_INDEX;
     }
 
-    if(array->data[index].size != object_size) {
-        void *ptr = malloc(object_size);
+    if(array->data[index]->size != object_size) {
+        void *ptr = malloc(sizeof(struct ARRAY_ENTRY) + object_size);
         if(ptr == NULL) {
             return ARRAY_MALLOC_ERROR;
         }
-        array->size -= array->data[index].size;
+        array->size -= array->data[index]->size;
         array->size += object_size;
-        free(array->data[index].data);
-        array->data[index].data = ptr;
+        free(array->data[index]);
+        array->data[index] = ptr;
     }
-    array->data[index].size = object_size;
-    memcpy(array->data[index].data, src, object_size);
+    array->data[index]->size = object_size;
+    memcpy(array->data[index]->data, src, object_size);
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_insert(struct ARRAY *array, size_t index, const void *object, size_t object_size) {
@@ -113,7 +113,7 @@ int array_insert(struct ARRAY *array, size_t index, const void *object, size_t o
         return ARRAY_INVALID_OBJSZ;
     }
 
-    void *ptr = malloc(object_size);
+    void *ptr = malloc(sizeof(struct ARRAY_ENTRY) + object_size);
     if(ptr == NULL) {
         return ARRAY_MALLOC_ERROR;
     }
@@ -127,13 +127,13 @@ int array_insert(struct ARRAY *array, size_t index, const void *object, size_t o
     for(size_t i = array->current; i > index; --i) {
         array->data[i] = array->data[i - 1];
     }
-    memcpy(ptr, object, object_size);
-    array->data[index].data = ptr;
-    array->data[index].size = object_size;
+    array->data[index] = ptr;
+    array->data[index]->size = object_size;
+    memcpy(array->data[index]->data, object, object_size);
     ++array->current;
     array->size += object_size;
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_get(const struct ARRAY *array, size_t index, void *dst, size_t object_size) {
@@ -143,13 +143,13 @@ int array_get(const struct ARRAY *array, size_t index, void *dst, size_t object_
     if(index > array->current - 1) {
         return ARRAY_INVALID_INDEX;
     }
-    if(array->data[index].size != object_size) {
+    if(array->data[index]->size != object_size) {
         return ARRAY_INVALID_OBJSZ;
     }
 
-    memcpy(dst, array->data[index].data, array->data[index].size);
+    memcpy(dst, array->data[index]->data, array->data[index]->size);
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_del(struct ARRAY *array, size_t start, size_t end) {
@@ -164,9 +164,9 @@ int array_del(struct ARRAY *array, size_t start, size_t end) {
     }
 
     for(size_t i = start; i <= end && i < array->current; ++i) {
-        array->size -= array->data[i].size;
-        free(array->data[i].data);
-        array->data[i].data = NULL;
+        array->size -= array->data[i]->size;
+        free(array->data[i]);
+        array->data[i] = NULL;
     }
 
     for(size_t i = start, j = 0; i < array->current && end + 1 + j < array->current; ++i, ++j) {
@@ -192,7 +192,7 @@ int array_del(struct ARRAY *array, size_t start, size_t end) {
         array->data = NULL;
     }
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 int array_get_objects_start(struct ARRAY *array, size_t index) {
@@ -205,7 +205,7 @@ int array_get_objects_start(struct ARRAY *array, size_t index) {
 
     array->index = index;
 
-    return 0;
+    return ARRAY_SUCCESS;
 }
 
 struct ARRAY_ENTRY* array_get_objects_next(struct ARRAY *array) {
@@ -215,11 +215,11 @@ struct ARRAY_ENTRY* array_get_objects_next(struct ARRAY *array) {
     if(array->index >= array->current) {
         return NULL;
     }
-    if(array->data[array->index].data == NULL) {
+    if(array->data[array->index] == NULL) {
         return NULL;
     }
 
-    return &array->data[array->index++];
+    return array->data[array->index++];
 }
 
 size_t array_len(const struct ARRAY *array) {
@@ -235,5 +235,5 @@ size_t array_size(const struct ARRAY *array) {
         return 0;
     }
 
-    return sizeof(struct ARRAY) + array->len * sizeof(struct ARRAY_ENTRY) + array->size;
+    return sizeof(struct ARRAY) + array->len * sizeof(struct ARRAY_ENTRY**) + array->size;
 }

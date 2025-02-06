@@ -4,7 +4,7 @@ HEADERS = $(wildcard *.h)
 EXECUTABLES = $(patsubst %.c, %, $(SOURCES))
 
 CC = gcc
-CFLAGS = -Wall -g -fsanitize=address -fsanitize=leak
+CFLAGS = -Wall -g -fsanitize=address -fsanitize=leak -fsanitize=undefined
 
 default: $(PROJECT)
 

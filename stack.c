@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "stack.h"
-
+#include <stdio.h>
 struct STACK *stack_init(unsigned int length, unsigned int object_size) {
     if(length == 0 || object_size == 0) {
         return NULL;
@@ -114,6 +114,12 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
         return STACK_PARAM_ERROR;
     }
 
+    // Extend object if it doesn't aligned
+    unsigned int size_save = size;
+    if(size & 0x3) {
+        size = ((size >> 2) + 1) << 2;
+    }
+
     struct MT_STACK *hdr = *stack;
     if(*stack == NULL) {
         *stack = malloc(sizeof(struct MT_STACK) + size);
@@ -125,7 +131,7 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
         hdr->stack_length = 1;
         hdr->stack_size = size + sizeof(struct MT_STACK);
         hdr->prev_object_size = 0;
-        memcpy((*stack) + sizeof(struct MT_STACK), object, size);
+        memcpy((*stack) + sizeof(struct MT_STACK), object, size_save);
 
         return STACK_SUCCESS;
     }
@@ -143,7 +149,7 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
         }
 
         (*stack) += stack_size;
-        memcpy((*stack) + sizeof(struct MT_STACK), object, size);
+        memcpy((*stack) + sizeof(struct MT_STACK), object, size_save);
         hdr = *stack;
         hdr->object_size = size;
         hdr->stack_length = stack_length + 1;
@@ -162,12 +168,17 @@ int mt_stack_pop(void **stack, void *object, unsigned int size) {
         return STACK_IS_EMPTY;
     }
 
+    unsigned int size_save = size;
+    if(size & 0x3) {
+        size = ((size >> 2) + 1) << 2;
+    }
+
     struct MT_STACK *hdr = *stack;
     if(hdr->object_size != size) {
         return STACK_SIZE_ERROR;
     }
 
-    memcpy(object, (*stack) + sizeof(struct MT_STACK), size);
+    memcpy(object, (*stack) + sizeof(struct MT_STACK), size_save);
 
     struct MT_STACK tmp = *hdr;
     *stack = realloc((*stack) - hdr->stack_size + hdr->object_size + sizeof(struct MT_STACK), hdr->stack_size - hdr->object_size - sizeof(struct MT_STACK));

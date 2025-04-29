@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include "stack.h"
 #include <stdio.h>
-struct STACK *stack_init(unsigned int length, unsigned int object_size) {
+
+
+struct STACK *stack_init(size_t length, size_t object_size) {
     if(length == 0 || object_size == 0) {
         return NULL;
     }
@@ -27,7 +29,7 @@ struct STACK *stack_init(unsigned int length, unsigned int object_size) {
     return stack;
 }
 
-int stack_reinit(struct STACK *stack, unsigned int length) {
+int stack_reinit(struct STACK *stack, size_t length) {
     if(stack == NULL) {
         return STACK_ERROR;
     }
@@ -109,15 +111,15 @@ int stack_pop(struct STACK *stack, void *object) {
     return stack->length - stack->current;
 }
 
-int mt_stack_push(void **stack, const void *object, unsigned int size) {
+int mt_stack_push(void **stack, const void *object, size_t size) {
     if(object == NULL || size == 0) {
         return STACK_PARAM_ERROR;
     }
 
-    // Extend object if it doesn't aligned
-    unsigned int size_save = size;
-    if(size & 0x3) {
-        size = ((size >> 2) + 1) << 2;
+    // Extend object if it isn't aligned
+    size_t size_save = size;
+    if(size & 0x7) {
+        size = ((size >> 3) + 1) << 3;
     }
 
     struct MT_STACK *hdr = *stack;
@@ -126,6 +128,7 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
         if(*stack == NULL) {
             return STACK_ALLOC_ERROR;
         }
+
         hdr = *stack;
         hdr->object_size = size;
         hdr->stack_length = 1;
@@ -136,9 +139,9 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
         return STACK_SUCCESS;
     }
     else {
-        int stack_size = hdr->stack_size;
-        int stack_length = hdr->stack_length;
-        int prev_object_size = hdr->object_size;
+        size_t stack_size = hdr->stack_size;
+        size_t stack_length = hdr->stack_length;
+        size_t prev_object_size = hdr->object_size;
 
         void *stack_save = *stack;
         *stack = realloc((*stack) - (hdr->stack_size - hdr->object_size - sizeof(struct MT_STACK)), hdr->stack_size + size + sizeof(struct MT_STACK));
@@ -160,7 +163,7 @@ int mt_stack_push(void **stack, const void *object, unsigned int size) {
     }
 }
 
-int mt_stack_pop(void **stack, void *object, unsigned int size) {
+int mt_stack_pop(void **stack, void *object, size_t size) {
     if(stack == NULL || object == NULL || size == 0) {
         return STACK_PARAM_ERROR;
     }
@@ -168,9 +171,9 @@ int mt_stack_pop(void **stack, void *object, unsigned int size) {
         return STACK_IS_EMPTY;
     }
 
-    unsigned int size_save = size;
-    if(size & 0x3) {
-        size = ((size >> 2) + 1) << 2;
+    size_t size_save = size;
+    if(size & 0x7) {
+        size = ((size >> 3) + 1) << 3;
     }
 
     struct MT_STACK *hdr = *stack;

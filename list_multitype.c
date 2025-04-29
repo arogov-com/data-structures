@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include "list_multitype.h"
 
-int mt_list_add(void **list, const void *object, unsigned int object_size) {
+int mt_list_add(void **list, const void *object, size_t object_size) {
     if(object == NULL || object_size == 0 || list == NULL) {
         return MT_LIST_PARAM_ERROR;
     }
@@ -37,7 +37,7 @@ int mt_list_add(void **list, const void *object, unsigned int object_size) {
     }
 }
 
-int mt_list_insert(void **list, const void *object, unsigned int object_size, int position) {
+int mt_list_insert(void **list, const void *object, size_t object_size, int position) {
     if(object == NULL || object_size == 0 || list == NULL) {
         return MT_LIST_PARAM_ERROR;
     }
@@ -77,7 +77,7 @@ int mt_list_insert(void **list, const void *object, unsigned int object_size, in
     return MT_LIST_SUCCESS;
 }
 
-int mt_list_get(void **list, int n, void *object, unsigned int object_size) {
+int mt_list_get(void **list, int n, void *object, size_t object_size) {
     if(list == NULL || object == NULL || object_size == 0) {
         return MT_LIST_PARAM_ERROR;
     }

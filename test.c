@@ -237,8 +237,8 @@ void test_mt_list() {
     printf("%-24s", "Check multi type list: ");
 
     struct NUMS {
-        int field1;
-        int field2;
+        uint32_t field1;
+        uint32_t field2;
     }nums;
 
     struct PERSON {
@@ -601,11 +601,11 @@ void test_map() {
     assert(map_get(&map, key, sizeof(key), &value, 2) == MAP_VALUE_ERROR);
 
     // Check value changing
-    value = -1;
+    value = 0;
     assert(map_add(&map, key, sizeof(key), &value, sizeof(value)) == MAP_OK);
     value = 0;
     assert(map_get(&map, key, sizeof(key), &value, sizeof(value)) == sizeof(value));
-    assert(value == -1);
+    assert(value == 0);
 
     // Check value size changing
     char hello[] = "Hello, World!";
@@ -742,7 +742,7 @@ void test_array() {
     printf("PASS\n");
 }
 
-int main(int argc, char const *argv[]) {
+int main() {
     test_map();
     test_stack();
     test_mt_stack();

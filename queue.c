@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "queue.h"
 
-int mt_queue_push(void **queue, void *object, unsigned int object_size) {
+int mt_queue_push(void **queue, void *object, size_t object_size) {
     if(object == NULL || object_size == 0 || queue == NULL) {
         return QUEUE_PARAM_ERROR;
     }
@@ -43,7 +43,7 @@ int mt_queue_push(void **queue, void *object, unsigned int object_size) {
     }
 }
 
-int mt_queue_pop(void **queue, void *object, unsigned int object_size) {
+int mt_queue_pop(void **queue, void *object, size_t object_size) {
     if(queue == NULL || object == NULL || object_size == 0) {
         return QUEUE_PARAM_ERROR;
     }
@@ -74,7 +74,7 @@ int mt_queue_pop(void **queue, void *object, unsigned int object_size) {
     return QUEUE_SUCCESS;
 }
 
-int mt_queue_front(void **queue, void *object, unsigned int object_size) {
+int mt_queue_front(void **queue, void *object, size_t object_size) {
     if(queue == NULL) {
         return QUEUE_PARAM_ERROR;
     }
@@ -92,7 +92,7 @@ int mt_queue_front(void **queue, void *object, unsigned int object_size) {
     return QUEUE_SUCCESS;
 }
 
-int mt_queue_back(void **queue, void *object, unsigned int object_size) {
+int mt_queue_back(void **queue, void *object, size_t object_size) {
     if(queue == NULL) {
         return QUEUE_PARAM_ERROR;
     }

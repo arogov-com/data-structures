@@ -19,15 +19,15 @@ struct LIST_HEADER {
 // Create a new linked list if '*list' is NULL, and append an 'object' of size 'object_size' to it.
 // Otherwise, add a new object of size "object_size" to the end of the list.
 // Return MT_LIST_SUCCESS if no errors
-int mt_list_add(void **list, const void *object, unsigned int object_size);
+int mt_list_add(void **list, const void *object, size_t object_size);
 
 // Insert 'object' into 'list' at position 'position'
 // Return MT_LIST_SUCCESS if no errors
-int mt_list_insert(void **list, const void *object, unsigned int object_size, int position);
+int mt_list_insert(void **list, const void *object, size_t object_size, int position);
 
 // Copy node number 'n' to 'object'
 // Return MT_LIST_SUCCESS if no errors
-int mt_list_get(void **list, int n, void *object, unsigned int object_size);
+int mt_list_get(void **list, int n, void *object, size_t object_size);
 
 // Remove object number 'n' from the 'list'
 // Return MT_LIST_SUCCESS if no errors

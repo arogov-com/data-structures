@@ -14,28 +14,28 @@
 #define STACK_SUCCESS       1
 
 struct STACK {
-    void *ptr;                 // Pointer to stack data
-    unsigned int length;       // Number of stack records
-    unsigned int object_size;  // Size of stack record
-    unsigned int current;      // Current record
+    void *ptr;                // Pointer to stack data
+    size_t length;            // Number of stack records
+    size_t object_size;       // Size of stack record
+    size_t current;           // Current record
 };
 
 struct MT_STACK {
-    int stack_size;        // Stack size in bytes
-    int stack_length;      // Stack length
-    int object_size;       // Object size
-    int prev_object_size;  // Previous object's size
+    size_t stack_size;        // Stack size in bytes
+    size_t stack_length;      // Stack length
+    size_t object_size;       // Object size
+    size_t prev_object_size;  // Previous object's size
 };
 
 
 // Initialize a new stack
 // Return stack pointer
-struct STACK *stack_init(unsigned int length, unsigned int object_size);
+struct STACK *stack_init(size_t length, size_t object_size);
 
 // Change 'stack' 'length'. Return the new stack size in bytes
 // If the current stack position is outside the new stack's memory, set it to the last position in the new stack
 // Return STACK_SUCCESS if no errors
-int stack_reinit(struct STACK *stack, unsigned int length);
+int stack_reinit(struct STACK *stack, size_t length);
 
 // Delete 'stack' structure and data
 // Return STACK_SUCCESS if no errors
@@ -52,11 +52,11 @@ int stack_pop(struct STACK *stack, void *object);
 
 // Push an object of size 'size' onto the 'stack'
 // Return STACK_SUCCESS if no errors
-int mt_stack_push(void **stack, const void *object, unsigned int size);
+int mt_stack_push(void **stack, const void *object, size_t size);
 
 // Pop an object from the 'stack' and copy it into the 'object'
 // Return STACK_SUCCESS if no errors
-int mt_stack_pop(void **stack, void *object, unsigned int size);
+int mt_stack_pop(void **stack, void *object, size_t size);
 
 // Return the size of the 'stack' in bytes, or a value less than 0 on error.
 int mt_stack_size(const void **stack);

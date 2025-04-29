@@ -22,11 +22,11 @@ struct MT_QUEUE {
 
 // Create a 'queue' and add an 'object' to it if '*queue' is NULL, or add an 'object' to an existing queue otherwise
 // Return QUEUE_SUCCESS if no errors
-int mt_queue_push(void **queue, void *object, unsigned int object_size);
+int mt_queue_push(void **queue, void *object, size_t object_size);
 
 // Get an object from the beginning of the 'queue' and remove it
 // Return QUEUE_SUCCESS if no errors
-int mt_queue_pop(void **queue, void *object, unsigned int object_size);
+int mt_queue_pop(void **queue, void *object, size_t object_size);
 
 // Destroy queue
 // Return QUEUE_SUCCESS if no errors
@@ -34,11 +34,11 @@ int mt_qeue_destroy(void **queue);
 
 // Access first element
 // Return QUEUE_SUCCESS if no errors
-int mt_queue_front(void **queue, void *object, unsigned int object_size);
+int mt_queue_front(void **queue, void *object, size_t object_size);
 
 // Access last element
 // Return QUEUE_SUCCESS if no errors
-int mt_queue_back(void **queue, void *object, unsigned int object_size);
+int mt_queue_back(void **queue, void *object, size_t object_size);
 
 // Get queue length
 // Return QUEUE_SUCCESS if no errors
